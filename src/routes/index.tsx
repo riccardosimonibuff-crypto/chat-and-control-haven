@@ -2,6 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Send, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { askGemini } from "@/lib/gemini.functions";
+import { loadGemini } from "@/lib/gemini-settings";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [
@@ -15,10 +18,6 @@ export const Route = createFileRoute("/")({
 
 type Msg = { id: string; role: "user" | "assistant"; content: string; created_at: string };
 
-function simulateReply(text: string) {
-  return `Ricevuto, signore. V.E.G.A ha registrato: "${text.slice(0, 120)}". I miei moduli cognitivi saranno attivati nello Step successivo; per ora confermo che la memoria funziona correttamente e che il suo sforzo è già stato ridotto a zero.`;
-}
-
 function ChatPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,6 +26,7 @@ function ChatPage() {
   const [error, setError] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const ask = useServerFn(askGemini);
 
   useEffect(() => {
     supabase.from("messages").select("*").order("created_at").then(({ data, error }) => {
@@ -43,6 +43,7 @@ function ChatPage() {
     const { data, error } = await supabase.from("messages").insert({ role, content }).select().single();
     if (error) throw error;
     setMessages((m) => [...m, data as Msg]);
+    return data as Msg;
   }
 
   async function send() {
@@ -52,11 +53,14 @@ function ChatPage() {
     setError(null);
     setThinking(true);
     try {
-      await save("user", text);
-      await new Promise((r) => setTimeout(r, 700));
-      await save("assistant", simulateReply(text));
+      const userMsg = await save("user", text);
+      const history = [...messages, userMsg].slice(-50).map(({ role, content }) => ({ role, content }));
+      const { apiKey, model } = loadGemini();
+      const res = await ask({ data: { apiKey: apiKey || undefined, model, history } });
+      if (!res.ok) throw new Error(res.error);
+      await save("assistant", res.text);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Errore di salvataggio");
+      setError(e instanceof Error ? e.message : "Errore");
     } finally {
       setThinking(false);
       inputRef.current?.focus();

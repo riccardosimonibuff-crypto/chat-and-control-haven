@@ -3,7 +3,7 @@ import { MessageSquareCode, Network, CalendarClock, Radar, NotebookPen, Cpu } fr
 
 export const NAV = [
   { to: "/", label: "Chat Principale", icon: MessageSquareCode },
-  { to: "/rete", label: "Rete & Ollama", icon: Network },
+  { to: "/rete", label: "Rete & Connessione", icon: Network },
   { to: "/produttivita", label: "Produttività", icon: CalendarClock },
   { to: "/informazioni", label: "Informazioni", icon: Radar },
   { to: "/diario", label: "Diario & Documenti", icon: NotebookPen },
