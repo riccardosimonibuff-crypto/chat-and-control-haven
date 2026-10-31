@@ -41,25 +41,57 @@ export const askGemini = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data }) => {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${data.model}:generateContent`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-goog-api-key": resolveKey(data.apiKey) },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: SYSTEM }] },
-          contents: data.history.map((m) => ({
-            role: m.role === "assistant" ? "model" : "user",
-            parts: [{ text: m.content }],
-          })),
-        }),
-      },
-    );
-    if (!res.ok) return { ok: false as const, error: await googleError(res) };
-    const body = await res.json();
-    const text: string | undefined = body?.candidates?.[0]?.content?.parts
-      ?.map((p: { text?: string }) => p.text ?? "")
-      .join("");
-    if (!text) return { ok: false as const, error: "Gemini non ha restituito alcuna risposta." };
-    return { ok: true as const, text };
+    const key = resolveKey(data.apiKey);
+    const today = new Intl.DateTimeFormat("it-IT", { timeZone: "Europe/Rome", dateStyle: "full", timeStyle: "short" }).format(new Date());
+    const contents: any[] = data.history.map((m) => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: m.content }],
+    }));
+    const tools = [{
+      functionDeclarations: [
+        { name: "get_calendar_events", description: "Recupera gli impegni di oggi dal Google Calendar dell'utente." },
+        { name: "get_recent_emails", description: "Legge le ultime 5 email ricevute nella casella Gmail dell'utente (mittente, oggetto, estratto)." },
+      ],
+    }];
+
+    for (let step = 0; step < 5; step++) {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${data.model}:generateContent`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: `${SYSTEM}\nData e ora attuali: ${today} (Europe/Rome). Usa gli strumenti quando l'utente chiede di agenda, impegni o email.` }] },
+            contents,
+            tools,
+          }),
+        },
+      );
+      if (!res.ok) return { ok: false as const, error: await googleError(res) };
+      const body = await res.json();
+      const content = body?.candidates?.[0]?.content;
+      const parts: any[] = content?.parts ?? [];
+      const calls = parts.filter((p) => p.functionCall);
+      if (calls.length === 0) {
+        const text = parts.map((p) => (p.thought ? "" : p.text ?? "")).join("").trim();
+        if (!text) return { ok: false as const, error: "Gemini non ha restituito alcuna risposta." };
+        return { ok: true as const, text };
+      }
+      contents.push(content);
+      const { getTodayEvents, getRecentEmails } = await import("./google.server");
+      const responses = await Promise.all(calls.map(async (p) => {
+        const name = p.functionCall.name;
+        let response: unknown;
+        try {
+          if (name === "get_calendar_events") response = { events: await getTodayEvents() };
+          else if (name === "get_recent_emails") response = { emails: await getRecentEmails() };
+          else response = { error: "Funzione sconosciuta" };
+        } catch (e) {
+          response = { error: e instanceof Error ? e.message : "Errore" };
+        }
+        return { functionResponse: { name, response } };
+      }));
+      contents.push({ role: "user", parts: responses });
+    }
+    return { ok: false as const, error: "Troppe chiamate agli strumenti." };
   });
