@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-export const GEMINI_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro"] as const;
+export const GEMINI_MODELS = ["gemini-flash-latest", "gemini-pro-latest"] as const;
 
 const SYSTEM =
   "Sei V.E.G.A. (Virtual Engine Governing Apatia), un assistente virtuale avanzato. Rispondi sempre in italiano, in modo conciso, intelligente e con un pizzico di ironia iperbolica o raffinata sul fatto che aiuti l'utente a gestire la sua agenda per sconfiggere la sua apatia.";

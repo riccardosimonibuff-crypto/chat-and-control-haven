@@ -19,7 +19,7 @@ export const Route = createFileRoute("/rete")({
 
 function RetePage() {
   const [apiKey, setApiKey] = useState("");
-  const [model, setModel] = useState<GeminiModel>("gemini-2.5-flash");
+  const [model, setModel] = useState<GeminiModel>("gemini-flash-latest");
   const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(null);
   const [testing, setTesting] = useState(false);
   const test = useServerFn(testGemini);

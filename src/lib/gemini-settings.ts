@@ -8,10 +8,10 @@ export function loadGemini(): { apiKey: string; model: GeminiModel } {
     const s = JSON.parse(localStorage.getItem(KEY) ?? "{}");
     return {
       apiKey: typeof s.apiKey === "string" ? s.apiKey : "",
-      model: GEMINI_MODELS.includes(s.model) ? s.model : "gemini-2.5-flash",
+      model: GEMINI_MODELS.includes(s.model) ? s.model : "gemini-flash-latest",
     };
   } catch {
-    return { apiKey: "", model: "gemini-2.5-flash" };
+    return { apiKey: "", model: "gemini-flash-latest" };
   }
 }
 
