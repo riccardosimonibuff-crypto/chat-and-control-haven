@@ -5,10 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [
-    { title: "JARVIS · Chat Principale" },
-    { name: "description", content: "Pannello di controllo centrale per dialogare con il tuo assistente JARVIS." },
-    { property: "og:title", content: "JARVIS · Chat Principale" },
-    { property: "og:description", content: "Pannello di controllo centrale per dialogare con il tuo assistente JARVIS." },
+    { title: "V.E.G.A · Chat Principale" },
+    { name: "description", content: "Pannello di controllo centrale per dialogare con il tuo assistente V.E.G.A." },
+    { property: "og:title", content: "V.E.G.A · Chat Principale" },
+    { property: "og:description", content: "Pannello di controllo centrale per dialogare con il tuo assistente V.E.G.A." },
   ] }),
   component: ChatPage,
 });
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/")({
 type Msg = { id: string; role: "user" | "assistant"; content: string; created_at: string };
 
 function simulateReply(text: string) {
-  return `Ricevuto, signore. Ho registrato: "${text.slice(0, 120)}". I miei moduli cognitivi saranno attivati nello Step successivo; per ora confermo che la memoria funziona correttamente.`;
+  return `Ricevuto, signore. V.E.G.A ha registrato: "${text.slice(0, 120)}". I miei moduli cognitivi saranno attivati nello Step successivo; per ora confermo che la memoria funziona correttamente e che il suo sforzo è già stato ridotto a zero.`;
 }
 
 function ChatPage() {
@@ -89,8 +89,10 @@ function ChatPage() {
           {loading && <p className="font-mono text-xs text-muted-foreground">Caricamento memoria…</p>}
           {!loading && messages.length === 0 && (
             <div className="py-20 text-center">
-              <p className="font-display text-xl tracking-widest text-primary text-glow">BUONGIORNO, SIGNORE.</p>
-              <p className="mt-3 font-mono text-sm text-muted-foreground">Sistemi pronti. Come posso esserle utile?</p>
+              <p className="font-display text-xl tracking-widest text-primary text-glow">SISTEMI V.E.G.A ONLINE.</p>
+              <p className="mt-3 font-mono text-sm text-muted-foreground">
+                Pronto a gestire l'agenda e a risparmiarle ogni sforzo, signore. L'apatia è sotto controllo.
+              </p>
             </div>
           )}
           {messages.map((m) => (
@@ -101,7 +103,7 @@ function ChatPage() {
                 </div>
               ) : (
                 <div className="max-w-[85%]">
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-primary">Jarvis</span>
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-primary">V.E.G.A</span>
                   <p className="mt-1 text-lg leading-relaxed">{m.content}</p>
                 </div>
               )}
@@ -109,7 +111,7 @@ function ChatPage() {
           ))}
           {thinking && (
             <div className="font-mono text-xs text-primary">
-              <span className="animate-pulse">▍ Jarvis sta elaborando…</span>
+              <span className="animate-pulse">▍ V.E.G.A sta elaborando…</span>
             </div>
           )}
           {error && <p className="font-mono text-xs text-destructive">⚠ {error}</p>}
@@ -128,7 +130,7 @@ function ChatPage() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
             rows={1}
-            placeholder="Scrivi un comando per Jarvis…"
+            placeholder="Scrivi un comando per V.E.G.A…"
             className="max-h-40 flex-1 resize-none bg-transparent px-2 py-2 font-mono text-sm outline-none placeholder:text-muted-foreground"
           />
           <button

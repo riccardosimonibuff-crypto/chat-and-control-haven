@@ -19,9 +19,16 @@ export function AppSidebar() {
           <span className="animate-pulse-ring absolute inset-0 rounded-full border-2 border-primary glow" />
           <span className="absolute inset-2 rounded-full bg-primary" />
         </div>
-        <span className="hidden font-display text-lg tracking-[0.3em] text-primary text-glow md:block">
-          J.A.R.V.I.S
-        </span>
+        <div className="hidden min-w-0 md:block">
+          <span className="block font-display text-lg leading-none tracking-[0.3em] text-primary text-glow">
+            V.E.G.A
+          </span>
+          <span className="mt-1 block font-mono text-[9px] uppercase leading-tight tracking-[0.14em] text-muted-foreground">
+            Virtual Engine
+            <br />
+            Governing Apatia
+          </span>
+        </div>
       </div>
       <nav className="flex-1 space-y-1 p-2">
         {NAV.map(({ to, label, icon: Icon }) => {

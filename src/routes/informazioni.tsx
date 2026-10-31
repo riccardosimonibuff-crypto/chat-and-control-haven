@@ -4,10 +4,10 @@ import { ModulePlaceholder } from "@/components/ModulePlaceholder";
 
 export const Route = createFileRoute("/informazioni")({
   head: () => ({ meta: [
-    { title: "Informazioni · JARVIS" },
-    { name: "description", content: "News e meteo in tempo reale tramite JARVIS." },
-    { property: "og:title", content: "Informazioni · JARVIS" },
-    { property: "og:description", content: "News e meteo in tempo reale tramite JARVIS." },
+    { title: "Informazioni · V.E.G.A" },
+    { name: "description", content: "News e meteo in tempo reale tramite V.E.G.A." },
+    { property: "og:title", content: "Informazioni · V.E.G.A" },
+    { property: "og:description", content: "News e meteo in tempo reale tramite V.E.G.A." },
   ] }),
   component: () => <ModulePlaceholder name="Informazioni" code="MOD-04" icon={Radar} />,
 });
