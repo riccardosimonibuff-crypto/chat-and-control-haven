@@ -10,33 +10,91 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DiarioRouteImport } from './routes/diario'
+import { Route as InformazioniRouteImport } from './routes/informazioni'
+import { Route as ProduttivitaRouteImport } from './routes/produttivita'
+import { Route as ReteRouteImport } from './routes/rete'
+import { Route as SistemaRouteImport } from './routes/sistema'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DiarioRoute = DiarioRouteImport.update({
+  id: '/diario',
+  path: '/diario',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InformazioniRoute = InformazioniRouteImport.update({
+  id: '/informazioni',
+  path: '/informazioni',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProduttivitaRoute = ProduttivitaRouteImport.update({
+  id: '/produttivita',
+  path: '/produttivita',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReteRoute = ReteRouteImport.update({
+  id: '/rete',
+  path: '/rete',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SistemaRoute = SistemaRouteImport.update({
+  id: '/sistema',
+  path: '/sistema',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/diario': typeof DiarioRoute
+  '/informazioni': typeof InformazioniRoute
+  '/produttivita': typeof ProduttivitaRoute
+  '/rete': typeof ReteRoute
+  '/sistema': typeof SistemaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/diario': typeof DiarioRoute
+  '/informazioni': typeof InformazioniRoute
+  '/produttivita': typeof ProduttivitaRoute
+  '/rete': typeof ReteRoute
+  '/sistema': typeof SistemaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/diario': typeof DiarioRoute
+  '/informazioni': typeof InformazioniRoute
+  '/produttivita': typeof ProduttivitaRoute
+  '/rete': typeof ReteRoute
+  '/sistema': typeof SistemaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    '/' | '/diario' | '/informazioni' | '/produttivita' | '/rete' | '/sistema'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/diario' | '/informazioni' | '/produttivita' | '/rete' | '/sistema'
+  id:
+    | '__root__'
+    | '/'
+    | '/diario'
+    | '/informazioni'
+    | '/produttivita'
+    | '/rete'
+    | '/sistema'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DiarioRoute: typeof DiarioRoute
+  InformazioniRoute: typeof InformazioniRoute
+  ProduttivitaRoute: typeof ProduttivitaRoute
+  ReteRoute: typeof ReteRoute
+  SistemaRoute: typeof SistemaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +106,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/diario': {
+      id: '/diario'
+      path: '/diario'
+      fullPath: '/diario'
+      preLoaderRoute: typeof DiarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/informazioni': {
+      id: '/informazioni'
+      path: '/informazioni'
+      fullPath: '/informazioni'
+      preLoaderRoute: typeof InformazioniRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/produttivita': {
+      id: '/produttivita'
+      path: '/produttivita'
+      fullPath: '/produttivita'
+      preLoaderRoute: typeof ProduttivitaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rete': {
+      id: '/rete'
+      path: '/rete'
+      fullPath: '/rete'
+      preLoaderRoute: typeof ReteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sistema': {
+      id: '/sistema'
+      path: '/sistema'
+      fullPath: '/sistema'
+      preLoaderRoute: typeof SistemaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DiarioRoute: DiarioRoute,
+  InformazioniRoute: InformazioniRoute,
+  ProduttivitaRoute: ProduttivitaRoute,
+  ReteRoute: ReteRoute,
+  SistemaRoute: SistemaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
