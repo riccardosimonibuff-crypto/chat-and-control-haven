@@ -5,10 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [
-    { title: "JARVIS · Chat Principale" },
-    { name: "description", content: "Pannello di controllo centrale per dialogare con il tuo assistente JARVIS." },
-    { property: "og:title", content: "JARVIS · Chat Principale" },
-    { property: "og:description", content: "Pannello di controllo centrale per dialogare con il tuo assistente JARVIS." },
+    { title: "V.E.G.A · Chat Principale" },
+    { name: "description", content: "Pannello di controllo centrale per dialogare con il tuo assistente V.E.G.A." },
+    { property: "og:title", content: "V.E.G.A · Chat Principale" },
+    { property: "og:description", content: "Pannello di controllo centrale per dialogare con il tuo assistente V.E.G.A." },
   ] }),
   component: ChatPage,
 });
