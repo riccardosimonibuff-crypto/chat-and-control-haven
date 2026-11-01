@@ -14,24 +14,117 @@ export type Database = {
   }
   public: {
     Tables: {
+      google_accounts: {
+        Row: {
+          access_token_ciphertext: string
+          created_at: string
+          email: string
+          expires_at: string
+          google_subject: string
+          id: string
+          reconnect_required: boolean
+          refresh_token_ciphertext: string
+          scopes: string
+          user_id: string
+        }
+        Insert: {
+          access_token_ciphertext: string
+          created_at?: string
+          email: string
+          expires_at: string
+          google_subject: string
+          id?: string
+          reconnect_required?: boolean
+          refresh_token_ciphertext: string
+          scopes: string
+          user_id: string
+        }
+        Update: {
+          access_token_ciphertext?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          google_subject?: string
+          id?: string
+          reconnect_required?: boolean
+          refresh_token_ciphertext?: string
+          scopes?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      google_oauth_states: {
+        Row: {
+          expires_at: string
+          redirect_uri: string
+          state: string
+          user_id: string
+          verifier_ciphertext: string
+        }
+        Insert: {
+          expires_at?: string
+          redirect_uri: string
+          state: string
+          user_id: string
+          verifier_ciphertext: string
+        }
+        Update: {
+          expires_at?: string
+          redirect_uri?: string
+          state?: string
+          user_id?: string
+          verifier_ciphertext?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
           created_at: string
           id: string
           role: string
+          source: string
+          user_id: string | null
         }
         Insert: {
           content: string
           created_at?: string
           id?: string
           role: string
+          source?: string
+          user_id?: string | null
         }
         Update: {
           content?: string
           created_at?: string
           id?: string
           role?: string
+          source?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string
+          id: string
+          voice_enabled: boolean
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string
+          id: string
+          voice_enabled?: boolean
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          voice_enabled?: boolean
         }
         Relationships: []
       }

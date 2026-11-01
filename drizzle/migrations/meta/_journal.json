@@ -8,6 +8,13 @@
       "when": 1793468478252,
       "tag": "0000_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793519664319,
+      "tag": "0001_private_profiles_google_accounts_and_chat",
+      "breakpoints": true
     }
   ]
 }
