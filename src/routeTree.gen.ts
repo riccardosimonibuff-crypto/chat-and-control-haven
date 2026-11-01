@@ -15,6 +15,7 @@ import { Route as InformazioniRouteImport } from './routes/informazioni'
 import { Route as ProduttivitaRouteImport } from './routes/produttivita'
 import { Route as ReteRouteImport } from './routes/rete'
 import { Route as SistemaRouteImport } from './routes/sistema'
+import { Route as ApiPublicGoogleReturnRouteImport } from './routes/api/public/google/return'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,6 +47,11 @@ const SistemaRoute = SistemaRouteImport.update({
   path: '/sistema',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicGoogleReturnRoute = ApiPublicGoogleReturnRouteImport.update({
+  id: '/api/public/google/return',
+  path: '/api/public/google/return',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/produttivita': typeof ProduttivitaRoute
   '/rete': typeof ReteRoute
   '/sistema': typeof SistemaRoute
+  '/api/public/google/return': typeof ApiPublicGoogleReturnRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/produttivita': typeof ProduttivitaRoute
   '/rete': typeof ReteRoute
   '/sistema': typeof SistemaRoute
+  '/api/public/google/return': typeof ApiPublicGoogleReturnRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,13 +79,27 @@ export interface FileRoutesById {
   '/produttivita': typeof ProduttivitaRoute
   '/rete': typeof ReteRoute
   '/sistema': typeof SistemaRoute
+  '/api/public/google/return': typeof ApiPublicGoogleReturnRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/diario' | '/informazioni' | '/produttivita' | '/rete' | '/sistema'
+    | '/'
+    | '/diario'
+    | '/informazioni'
+    | '/produttivita'
+    | '/rete'
+    | '/sistema'
+    | '/api/public/google/return'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/diario' | '/informazioni' | '/produttivita' | '/rete' | '/sistema'
+  to:
+    | '/'
+    | '/diario'
+    | '/informazioni'
+    | '/produttivita'
+    | '/rete'
+    | '/sistema'
+    | '/api/public/google/return'
   id:
     | '__root__'
     | '/'
@@ -86,6 +108,7 @@ export interface FileRouteTypes {
     | '/produttivita'
     | '/rete'
     | '/sistema'
+    | '/api/public/google/return'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -95,6 +118,7 @@ export interface RootRouteChildren {
   ProduttivitaRoute: typeof ProduttivitaRoute
   ReteRoute: typeof ReteRoute
   SistemaRoute: typeof SistemaRoute
+  ApiPublicGoogleReturnRoute: typeof ApiPublicGoogleReturnRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -141,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SistemaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/google/return': {
+      id: '/api/public/google/return'
+      path: '/api/public/google/return'
+      fullPath: '/api/public/google/return'
+      preLoaderRoute: typeof ApiPublicGoogleReturnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -151,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProduttivitaRoute: ProduttivitaRoute,
   ReteRoute: ReteRoute,
   SistemaRoute: SistemaRoute,
+  ApiPublicGoogleReturnRoute: ApiPublicGoogleReturnRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
