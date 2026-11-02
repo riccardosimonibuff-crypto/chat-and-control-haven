@@ -1,7 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-export const GEMINI_MODELS = ["gemini-flash-latest", "gemini-pro-latest"] as const;
+export const GEMINI_MODELS = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-pro-latest"] as const;
 
 const SYSTEM =
   "Sei V.E.G.A. (Virtual Engine Governing Apatia), un assistente virtuale avanzato. Rispondi sempre in italiano, in modo conciso, intelligente e con un pizzico di ironia iperbolica o raffinata sul fatto che aiuti l'utente a gestire la sua agenda per sconfiggere la sua apatia.";
@@ -33,6 +34,7 @@ export const testGemini = createServerFn({ method: "POST" })
   });
 
 export const askGemini = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
     base
       .extend({
@@ -40,7 +42,7 @@ export const askGemini = createServerFn({ method: "POST" })
       })
       .parse(d),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const key = resolveKey(data.apiKey);
     const today = new Intl.DateTimeFormat("it-IT", { timeZone: "Europe/Rome", dateStyle: "full", timeStyle: "short" }).format(new Date());
     const contents: any[] = data.history.map((m) => ({
@@ -49,8 +51,8 @@ export const askGemini = createServerFn({ method: "POST" })
     }));
     const tools = [{
       functionDeclarations: [
-        { name: "get_calendar_events", description: "Recupera gli impegni di oggi dal Google Calendar dell'utente." },
-        { name: "get_recent_emails", description: "Legge le ultime 5 email ricevute nella casella Gmail dell'utente (mittente, oggetto, estratto)." },
+        { name: "get_calendar_events", description: "Scansiona tutti i calendari di tutti gli account Google collegati e restituisce gli impegni di oggi in un'unica cronologia ordinata, con l'account di provenienza." },
+        { name: "get_recent_emails", description: "Controlla tutte le caselle Gmail collegate e restituisce solo le email recenti importanti o urgenti, indicando l'account di provenienza." },
       ],
     }];
 
@@ -61,7 +63,7 @@ export const askGemini = createServerFn({ method: "POST" })
           method: "POST",
           headers: { "Content-Type": "application/json", "x-goog-api-key": key },
           body: JSON.stringify({
-            systemInstruction: { parts: [{ text: `${SYSTEM}\nData e ora attuali: ${today} (Europe/Rome). Usa gli strumenti quando l'utente chiede di agenda, impegni o email.` }] },
+            systemInstruction: { parts: [{ text: `${SYSTEM}\nData e ora attuali: ${today} (Europe/Rome). Usa gli strumenti quando l'utente chiede di agenda, impegni o email. Tono da maggiordomo digitale: frasi brevi, adatte a essere lette ad alta voce, niente markdown.` }] },
             contents,
             tools,
           }),
@@ -83,8 +85,8 @@ export const askGemini = createServerFn({ method: "POST" })
         const name = p.functionCall.name;
         let response: unknown;
         try {
-          if (name === "get_calendar_events") response = { events: await getTodayEvents() };
-          else if (name === "get_recent_emails") response = { emails: await getRecentEmails() };
+          if (name === "get_calendar_events") response = await getTodayEvents(context.userId);
+          else if (name === "get_recent_emails") response = await getRecentEmails(context.userId, true);
           else response = { error: "Funzione sconosciuta" };
         } catch (e) {
           response = { error: e instanceof Error ? e.message : "Errore" };
