@@ -13,6 +13,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppSidebar } from "@/components/AppSidebar";
+import { VegaProvider } from "@/lib/vega-context";
 
 function NotFoundComponent() {
   return (
@@ -100,7 +101,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="it">
       <head>
         <HeadContent />
       </head>
@@ -117,10 +118,12 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppSidebar />
-      <main className="pl-16 md:pl-64">
-        <Outlet />
-      </main>
+      <VegaProvider>
+        <AppSidebar />
+        <main className="pl-16 md:pl-64">
+          <Outlet />
+        </main>
+      </VegaProvider>
     </QueryClientProvider>
   );
 }

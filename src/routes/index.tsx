@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Send, Trash2 } from "lucide-react";
+import { Mic, MicOff, Send, Trash2 } from "lucide-react";
+import { SignInGate } from "@/components/SignInGate";
+import { useVega } from "@/lib/vega-context";
+import { useWakeListener } from "@/hooks/use-wake-listener";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { askGemini } from "@/lib/gemini.functions";
@@ -12,8 +15,10 @@ export const Route = createFileRoute("/")({
     { name: "description", content: "Pannello di controllo centrale per dialogare con il tuo assistente V.E.G.A." },
     { property: "og:title", content: "V.E.G.A · Chat Principale" },
     { property: "og:description", content: "Pannello di controllo centrale per dialogare con il tuo assistente V.E.G.A." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
   ] }),
-  component: ChatPage,
+  component: () => <SignInGate><ChatPage /></SignInGate>,
 });
 
 type Msg = { id: string; role: "user" | "assistant"; content: string; created_at: string };
@@ -27,6 +32,11 @@ function ChatPage() {
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const ask = useServerFn(askGemini);
+  const { speak, speaking } = useVega();
+  const messagesRef = useRef<Msg[]>([]);
+  messagesRef.current = messages;
+  const busyRef = useRef(false);
+  const voice = useWakeListener((cmd) => { void submit(cmd, "voice"); }, speaking || thinking);
 
   useEffect(() => {
     supabase.from("messages").select("*").order("created_at").then(({ data, error }) => {
@@ -39,29 +49,38 @@ function ChatPage() {
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, thinking]);
 
-  async function save(role: Msg["role"], content: string) {
-    const { data, error } = await supabase.from("messages").insert({ role, content }).select().single();
+  async function save(role: Msg["role"], content: string, source: "typed" | "voice" = "typed") {
+    const { data, error } = await supabase.from("messages").insert({ role, content, source }).select().single();
     if (error) throw error;
     setMessages((m) => [...m, data as Msg]);
     return data as Msg;
   }
 
-  async function send() {
+  function send() {
     const text = input.trim();
-    if (!text || thinking) return;
+    if (!text) return;
     setInput("");
+    void submit(text, "typed");
+  }
+
+  // Typed and wakeword commands share this single persistence/send path.
+  async function submit(text: string, source: "typed" | "voice") {
+    if (busyRef.current) return;
+    busyRef.current = true;
     setError(null);
     setThinking(true);
     try {
-      const userMsg = await save("user", text);
-      const history = [...messages, userMsg].slice(-50).map(({ role, content }) => ({ role, content }));
+      const userMsg = await save("user", text, source);
+      const history = [...messagesRef.current, userMsg].slice(-50).map(({ role, content }) => ({ role, content }));
       const { apiKey, model } = loadGemini();
       const res = await ask({ data: { apiKey: apiKey || undefined, model, history } });
       if (!res.ok) throw new Error(res.error);
-      await save("assistant", res.text);
+      await save("assistant", res.text, source);
+      speak(res.text);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Errore");
     } finally {
+      busyRef.current = false;
       setThinking(false);
       inputRef.current?.focus();
     }
@@ -138,6 +157,16 @@ function ChatPage() {
             className="max-h-40 flex-1 resize-none bg-transparent px-2 py-2 font-mono text-sm outline-none placeholder:text-muted-foreground"
           />
           <button
+            type="button"
+            onClick={() => (voice.state === "off" || voice.state === "unsupported" || voice.state === "error" ? voice.start() : voice.stop())}
+            aria-label={voice.state === "listening" ? "Disattiva ascolto" : "Attiva ascolto"}
+            aria-pressed={voice.state === "listening" || voice.state === "paused"}
+            className={`relative flex h-9 w-9 shrink-0 items-center justify-center rounded-md border ${voice.state === "listening" ? "border-primary text-primary glow" : voice.state === "paused" || voice.state === "preparing" ? "border-primary/50 text-primary/70" : "text-muted-foreground hover:border-primary hover:text-primary"}`}
+          >
+            {voice.state === "listening" && <span className="animate-pulse-ring absolute inset-0 rounded-md border-2 border-primary" />}
+            {voice.state === "unsupported" || voice.state === "error" ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+          </button>
+          <button
             type="submit"
             disabled={!input.trim() || thinking}
             aria-label="Invia"
@@ -146,6 +175,9 @@ function ChatPage() {
             <Send className="h-4 w-4" />
           </button>
         </form>
+        <p className="mx-auto mt-2 max-w-3xl font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+          {voice.message ?? (voice.state === "listening" ? "● In ascolto locale · dica \"Vega\" seguito dal comando" : voice.state === "paused" ? "Ascolto in pausa mentre V.E.G.A parla" : voice.state === "preparing" ? "Preparazione microfono…" : "Microfono spento")}
+        </p>
       </div>
     </div>
   );
