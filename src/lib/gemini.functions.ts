@@ -45,6 +45,10 @@ export const askGemini = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const key = resolveKey(data.apiKey);
     const today = new Intl.DateTimeFormat("it-IT", { timeZone: "Europe/Rome", dateStyle: "full", timeStyle: "short" }).format(new Date());
+    const { data: cfgRows } = await context.supabase.from("system_configurations").select("key,value").order("key");
+    const cfg = new Map((cfgRows ?? []).map((r) => [r.key, r.value]));
+    const basePrompt = cfg.get("system_prompt") || SYSTEM;
+    const rules = [...cfg].filter(([k]) => k !== "system_prompt").map(([k, v]) => `- ${k}: ${v}`).join("\n");
     const contents: any[] = data.history.map((m) => ({
       role: m.role === "assistant" ? "model" : "user",
       parts: [{ text: m.content }],
@@ -53,6 +57,18 @@ export const askGemini = createServerFn({ method: "POST" })
       functionDeclarations: [
         { name: "get_calendar_events", description: "Scansiona tutti i calendari di tutti gli account Google collegati e restituisce gli impegni di oggi in un'unica cronologia ordinata, con l'account di provenienza." },
         { name: "get_recent_emails", description: "Controlla tutte le caselle Gmail collegate e restituisce solo le email recenti importanti o urgenti, indicando l'account di provenienza." },
+        {
+          name: "update_system_configuration",
+          description: "Salva in modo permanente una regola di comportamento o preferenza dell'utente (es. come chiamarlo, tono, lingua). Usala quando l'utente ordina di cambiare un comportamento 'da adesso'. Usa chiavi brevi in snake_case (es. 'appellativo_utente'). La chiave 'system_prompt' sostituisce l'intera personalità di base.",
+          parameters: {
+            type: "OBJECT",
+            properties: {
+              key: { type: "STRING", description: "Nome della configurazione in snake_case." },
+              new_value: { type: "STRING", description: "Nuovo valore della configurazione." },
+            },
+            required: ["key", "new_value"],
+          },
+        },
       ],
     }];
 
@@ -63,7 +79,7 @@ export const askGemini = createServerFn({ method: "POST" })
           method: "POST",
           headers: { "Content-Type": "application/json", "x-goog-api-key": key },
           body: JSON.stringify({
-            systemInstruction: { parts: [{ text: `${SYSTEM}\nData e ora attuali: ${today} (Europe/Rome). Usa gli strumenti quando l'utente chiede di agenda, impegni o email. Tono da maggiordomo digitale: frasi brevi, adatte a essere lette ad alta voce, niente markdown.` }] },
+            systemInstruction: { parts: [{ text: `${basePrompt}\nData e ora attuali: ${today} (Europe/Rome). Usa gli strumenti quando l'utente chiede di agenda, impegni o email. Tono da maggiordomo digitale: frasi brevi, adatte a essere lette ad alta voce, niente markdown.${rules ? `\nRegole personalizzate dell'utente (hanno priorità):\n${rules}` : ""}` }] },
             contents,
             tools,
           }),
