@@ -1,7 +1,5 @@
 # Roadmap
 
-- [ ] Resolve secure multi-account authorization approach and app sign-in/profile requirements.
-- [ ] Add connected-account management, protected credential storage, merged calendar and important email tools.
-- [ ] Confirm the available Gemini model requested for tools.
-- [ ] Add native wakeword listening and Italian speech with sidebar mute; resolve local-only recognition support.
-- [ ] Test wakeword gating, persisted voice conversation, account isolation and productivity reads.
+- [x] Sign-in, multi-account Google storage, merged calendar/email tools, voice + mute.
+- [x] Self-modification: per-user system_configurations read each chat turn + update_system_configuration tool.
+- [ ] End-to-end test of sign-in, Google linking, wakeword and voice in a real browser (needs user's mic/Google login).

@@ -103,6 +103,16 @@ export const askGemini = createServerFn({ method: "POST" })
         try {
           if (name === "get_calendar_events") response = await getTodayEvents(context.userId);
           else if (name === "get_recent_emails") response = await getRecentEmails(context.userId, true);
+          else if (name === "update_system_configuration") {
+            const k = String(p.functionCall.args?.key ?? "").trim().toLowerCase().replace(/[^a-z0-9_]/g, "_").slice(0, 64);
+            const v = String(p.functionCall.args?.new_value ?? "").trim().slice(0, 4000);
+            if (!k || !v) response = { error: "Chiave o valore mancante" };
+            else {
+              const { error } = await context.supabase.from("system_configurations")
+                .upsert({ user_id: context.userId, key: k, value: v, updated_at: new Date().toISOString() }, { onConflict: "user_id,key" });
+              response = error ? { error: error.message } : { ok: true, key: k, value: v };
+            }
+          }
           else response = { error: "Funzione sconosciuta" };
         } catch (e) {
           response = { error: e instanceof Error ? e.message : "Errore" };
