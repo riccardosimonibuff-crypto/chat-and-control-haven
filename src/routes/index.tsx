@@ -71,12 +71,12 @@ function ChatPage() {
     setThinking(true);
     try {
       const userMsg = await save("user", text, source);
-      const history = [...messagesRef.current, userMsg].slice(-50).map(({ role, content }) => ({ role, content }));
+      const history = [...messagesRef.current, userMsg].slice(-20).map(({ role, content }) => ({ role, content }));
       const { apiKey, model } = loadGemini();
       const res = await ask({ data: { apiKey: apiKey || undefined, model, history } });
       if (!res.ok) throw new Error(res.error);
-      await save("assistant", res.text, source);
       speak(res.text);
+      await save("assistant", res.text, source);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Errore");
     } finally {
