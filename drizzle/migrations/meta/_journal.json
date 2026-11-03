@@ -15,6 +15,13 @@
       "when": 1793519664319,
       "tag": "0001_private_profiles_google_accounts_and_chat",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793687970490,
+      "tag": "0002_system_configurations",
+      "breakpoints": true
     }
   ]
 }
