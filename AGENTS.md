@@ -13,3 +13,4 @@
 - Dedicated multi-account Google OAuth uses one-time persisted PKCE state and encrypted server-only tokens per user and Google subject; never fall back to workspace Gmail/Calendar credentials.
 - Native voice recognition must fail closed unless Italian on-device processing is supported; typed and wakeword commands share one persistence/send path, and recognition pauses during speech playback.
 - Shared voice preference lives in the root provider and user profile; keep speech browser APIs inside effects or user actions.
+- Gemini self-modification stores per-user rules in system_configurations via the user's RLS client; never use the admin client for it (keeps rules user-scoped).
