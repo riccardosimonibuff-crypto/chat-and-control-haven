@@ -82,6 +82,8 @@ export const askGemini = createServerFn({ method: "POST" })
             systemInstruction: { parts: [{ text: `${basePrompt}\nData e ora attuali: ${today} (Europe/Rome). Usa gli strumenti quando l'utente chiede di agenda, impegni o email. Tono da maggiordomo digitale: frasi brevi, adatte a essere lette ad alta voce, niente markdown.${rules ? `\nRegole personalizzate dell'utente (hanno priorità):\n${rules}` : ""}` }] },
             contents,
             tools,
+            // Pro models cannot disable thinking; Flash skips it for faster replies.
+            ...(data.model.includes("pro") ? {} : { generationConfig: { thinkingConfig: { thinkingBudget: 0 } } }),
           }),
         },
       );
