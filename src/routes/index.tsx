@@ -36,6 +36,10 @@ function ChatPage() {
   const messagesRef = useRef<Msg[]>([]);
   messagesRef.current = messages;
   const busyRef = useRef(false);
+  const locRef = useRef<{ lat: number; lon: number } | null>(null);
+  useEffect(() => {
+    navigator.geolocation?.getCurrentPosition((p) => { locRef.current = { lat: p.coords.latitude, lon: p.coords.longitude }; }, () => {}, { maximumAge: 600000 });
+  }, []);
   const voice = useWakeListener((cmd) => { void submit(cmd, "voice"); }, speaking || thinking);
 
   useEffect(() => {
@@ -73,7 +77,7 @@ function ChatPage() {
       const userMsg = await save("user", text, source);
       const history = [...messagesRef.current, userMsg].slice(-20).map(({ role, content }) => ({ role, content }));
       const { apiKey, model } = loadGemini();
-      const res = await ask({ data: { apiKey: apiKey || undefined, model, history } });
+      const res = await ask({ data: { apiKey: apiKey || undefined, model, history, location: locRef.current } });
       if (!res.ok) throw new Error(res.error);
       speak(res.text);
       await save("assistant", res.text, source);
