@@ -152,6 +152,63 @@ export type Database = {
         }
         Relationships: []
       }
+      vega_notes: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vega_telemetry: {
+        Row: {
+          created_at: string
+          id: string
+          latency_ms: number
+          model: string
+          ok: boolean
+          tokens: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          latency_ms?: number
+          model?: string
+          ok?: boolean
+          tokens?: number
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          latency_ms?: number
+          model?: string
+          ok?: boolean
+          tokens?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
