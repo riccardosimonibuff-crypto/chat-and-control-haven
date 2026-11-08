@@ -147,15 +147,15 @@ export async function createCalendarEvent(userId: string, a: { account?: string;
 export async function updateCalendarEvent(userId: string, a: { event_id: string; title?: string; start?: string; end?: string; description?: string; location?: string }) {
   const parts = a.event_id.split(":");
   if (parts.length < 3) throw new Error("ID evento non valido.");
-  const accId = parts[0], evId = parts[parts.length - 1], calId = parts.slice(1, -1).join(":");
+  const accId = parts[0]!, evId = parts[parts.length - 1]!, calId = parts.slice(1, -1).join(":");
   const acc = (await accounts(userId)).find((x) => x.id === accId);
   if (!acc) throw new Error("Account dell'evento non trovato.");
   const patch: Record<string, unknown> = {};
-  if (a.title) patch.summary = a.title;
-  if (a.description) patch.description = a.description;
-  if (a.location) patch.location = a.location;
-  if (a.start) patch.start = when(a.start);
-  if (a.end) patch.end = when(a.end);
+  if (a.title) patch["summary"] = a.title;
+  if (a.description) patch["description"] = a.description;
+  if (a.location) patch["location"] = a.location;
+  if (a.start) patch["start"] = when(a.start);
+  if (a.end) patch["end"] = when(a.end);
   await gsend(await accessToken(acc), `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events/${encodeURIComponent(evId)}`, "PATCH", patch);
   return { ok: true, account: acc.email };
 }
