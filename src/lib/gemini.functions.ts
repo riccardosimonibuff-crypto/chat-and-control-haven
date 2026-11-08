@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-export const GEMINI_MODELS = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-pro-latest"] as const;
+export const GEMINI_MODELS = ["gemini-3.8-flash", "gemini-3.8-pro"] as const;
 
 const SYSTEM =
   "Sei V.E.G.A. (Virtual Engine Governing Apatia), un assistente virtuale avanzato. Rispondi sempre in italiano, in modo conciso, intelligente e con un pizzico di ironia iperbolica o raffinata sul fatto che aiuti l'utente a gestire la sua agenda per sconfiggere la sua apatia.";
@@ -82,8 +82,6 @@ export const askGemini = createServerFn({ method: "POST" })
             systemInstruction: { parts: [{ text: `${basePrompt}\nData e ora attuali: ${today} (Europe/Rome). Usa gli strumenti quando l'utente chiede di agenda, impegni o email. Tono da maggiordomo digitale: frasi brevi, adatte a essere lette ad alta voce, niente markdown.${rules ? `\nRegole personalizzate dell'utente (hanno priorità):\n${rules}` : ""}` }] },
             contents,
             tools,
-            // Pro models cannot disable thinking; Flash skips it for faster replies.
-            ...(data.model.includes("pro") ? {} : { generationConfig: { thinkingConfig: { thinkingBudget: 0 } } }),
           }),
         },
       );
