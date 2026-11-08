@@ -115,3 +115,59 @@ export async function getRecentEmails(userId: string, onlyImportant = false): Pr
   if (onlyImportant) emails = emails.filter((e) => e.important);
   return { emails, errors };
 }
+
+async function pickAccount(userId: string, email?: string) {
+  const list = await accounts(userId);
+  if (!list.length) throw new Error("Nessun account Google collegato.");
+  const acc = email ? list.find((a) => a.email.toLowerCase() === email.toLowerCase()) : list[0];
+  if (!acc) throw new Error(`Account ${email} non collegato.`);
+  return acc;
+}
+
+async function gsend(token: string, url: string, method: string, body: unknown) {
+  const res = await fetch(url, { method, headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (!res.ok) {
+    const t = await res.text();
+    console.error(`Google [${res.status}] ${url}: ${t}`);
+    if (res.status === 403) throw new Error("Permesso di scrittura mancante: ricollega l'account Google dalla pagina Produttività.");
+    throw new Error(`Google ha risposto ${res.status}`);
+  }
+  return res.json();
+}
+
+const when = (v: string) => (/^\d{4}-\d{2}-\d{2}$/.test(v) ? { date: v } : { dateTime: v, timeZone: "Europe/Rome" });
+
+export async function createCalendarEvent(userId: string, a: { account?: string; title: string; start: string; end: string; description?: string; location?: string }) {
+  const acc = await pickAccount(userId, a.account);
+  const ev = await gsend(await accessToken(acc), "https://www.googleapis.com/calendar/v3/calendars/primary/events", "POST",
+    { summary: a.title, description: a.description, location: a.location, start: when(a.start), end: when(a.end) });
+  return { ok: true, account: acc.email, event_id: `${acc.id}:primary:${ev.id}`, link: ev.htmlLink };
+}
+
+export async function updateCalendarEvent(userId: string, a: { event_id: string; title?: string; start?: string; end?: string; description?: string; location?: string }) {
+  const parts = a.event_id.split(":");
+  if (parts.length < 3) throw new Error("ID evento non valido.");
+  const accId = parts[0], evId = parts[parts.length - 1], calId = parts.slice(1, -1).join(":");
+  const acc = (await accounts(userId)).find((x) => x.id === accId);
+  if (!acc) throw new Error("Account dell'evento non trovato.");
+  const patch: Record<string, unknown> = {};
+  if (a.title) patch.summary = a.title;
+  if (a.description) patch.description = a.description;
+  if (a.location) patch.location = a.location;
+  if (a.start) patch.start = when(a.start);
+  if (a.end) patch.end = when(a.end);
+  await gsend(await accessToken(acc), `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events/${encodeURIComponent(evId)}`, "PATCH", patch);
+  return { ok: true, account: acc.email };
+}
+
+const b64 = (s: string) => btoa(Array.from(new TextEncoder().encode(s), (b) => String.fromCharCode(b)).join(""));
+const hdr = (v: string) => (/^[\x00-\x7F]*$/.test(v) ? v : `=?UTF-8?B?${b64(v)}?=`);
+
+export async function createEmailDraft(userId: string, a: { account?: string; to: string; subject: string; body: string }) {
+  if (/[\r\n]/.test(a.to + a.subject)) throw new Error("Intestazioni non valide.");
+  const acc = await pickAccount(userId, a.account);
+  const raw = b64([`To: ${a.to}`, `Subject: ${hdr(a.subject)}`, "MIME-Version: 1.0", 'Content-Type: text/plain; charset="UTF-8"', "", a.body].join("\r\n"))
+    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  const d = await gsend(await accessToken(acc), "https://gmail.googleapis.com/gmail/v1/users/me/drafts", "POST", { message: { raw } });
+  return { ok: true, account: acc.email, draft_id: d.id };
+}
