@@ -82,7 +82,11 @@ function ChatPage() {
       speak(res.text);
       await save("assistant", res.text, source);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Errore");
+      const msg = e instanceof Error ? e.message : String(e);
+      if (/unauthor|401|jwt|session/i.test(msg)) {
+        setError("Sessione scaduta: effettua di nuovo l'accesso.");
+        await supabase.auth.signOut();
+      } else setError(msg || "Errore sconosciuto");
     } finally {
       busyRef.current = false;
       setThinking(false);

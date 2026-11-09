@@ -85,7 +85,10 @@ export const askGemini = createServerFn({ method: "POST" })
     let tokens = 0;
     const log = (ok: boolean) => context.supabase.from("vega_telemetry").insert({ user_id: context.userId, model: data.model, latency_ms: Date.now() - t0, tokens, ok }).then(() => {});
     for (let step = 0; step < 6; step++) {
-      const res = await fetch(
+      let res: Response | undefined;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        if (attempt) await new Promise((r) => setTimeout(r, 1500 * attempt));
+        res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${data.model}:generateContent`,
         {
           method: "POST",
@@ -96,7 +99,10 @@ export const askGemini = createServerFn({ method: "POST" })
             tools,
           }),
         },
-      );
+        );
+        if (res.status !== 503 && res.status !== 429) break;
+      }
+      if (!res) throw new Error("Nessuna risposta");
       if (!res.ok) { await log(false); return { ok: false as const, error: await googleError(res) }; }
       const body = await res.json();
       tokens += Number(body?.usageMetadata?.totalTokenCount ?? 0);
