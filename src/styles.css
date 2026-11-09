@@ -83,3 +83,86 @@
 
 @keyframes pulse-ring { 0%,100% { opacity: .4; transform: scale(1);} 50% { opacity: 1; transform: scale(1.08);} }
 @utility animate-pulse-ring { animation: pulse-ring 2.4s ease-in-out infinite; }
+
+/* V.E.G.A HUD dashboard */
+@utility hud-bg {
+  background:
+    radial-gradient(ellipse at 50% 40%, color-mix(in oklab, var(--glow) 14%, transparent), transparent 60%),
+    var(--background);
+}
+@utility hud-panel {
+  position: relative;
+  border: 1px solid color-mix(in oklab, var(--glow) 55%, transparent);
+  background: color-mix(in oklab, var(--card) 80%, transparent);
+  clip-path: polygon(0 14px, 14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+  box-shadow: inset 0 0 30px -10px color-mix(in oklab, var(--glow) 45%, transparent);
+}
+@utility hud-chip {
+  border: 1px solid color-mix(in oklab, var(--glow) 55%, transparent);
+  background: color-mix(in oklab, var(--card) 70%, transparent);
+  box-shadow: 0 0 14px -6px var(--glow);
+  border-radius: 6px;
+}
+@utility hud-bubble {
+  border: 1px solid color-mix(in oklab, var(--glow) 30%, transparent);
+  background: color-mix(in oklab, var(--glow) 6%, transparent);
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+}
+@utility hud-bubble-vega {
+  border-color: var(--glow);
+  border-left-width: 4px;
+  box-shadow: 0 0 18px -6px var(--glow);
+}
+@utility hud-badge {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  padding: 2px 10px;
+  border-radius: 999px;
+  color: var(--success, var(--primary));
+  border: 1px solid currentColor;
+  box-shadow: 0 0 10px -3px currentColor;
+}
+@utility hud-badge-warn { color: var(--destructive); }
+@utility hud-gauge {
+  display: grid; place-items: center;
+  width: 72px; height: 72px; border-radius: 999px;
+  background:
+    radial-gradient(closest-side, var(--card) 76%, transparent 78%),
+    conic-gradient(var(--glow) var(--p), color-mix(in oklab, var(--glow) 15%, transparent) 0);
+  filter: drop-shadow(0 0 8px var(--glow));
+}
+@utility hud-wave { animation: hud-wave 0.9s ease-in-out infinite alternate; }
+@keyframes hud-wave { from { transform: scaleY(0.3); } to { transform: scaleY(1.2); } }
+@utility hud-core {
+  position: relative; width: min(100%, 380px); aspect-ratio: 1;
+}
+@utility hud-ring {
+  position: absolute; border-radius: 999px;
+}
+@utility hud-ring-1 {
+  inset: 0;
+  border: 2px dashed color-mix(in oklab, var(--glow) 60%, transparent);
+  animation: hud-spin 40s linear infinite;
+}
+@utility hud-ring-2 {
+  inset: 9%;
+  background: conic-gradient(from 0deg, var(--glow) 0 8%, transparent 8% 12%, var(--glow) 12% 30%, transparent 30% 36%, var(--glow) 36% 52%, transparent 52% 58%, var(--glow) 58% 80%, transparent 80% 86%, var(--glow) 86% 100%);
+  -webkit-mask: radial-gradient(closest-side, transparent 86%, #000 87%, #000 99%, transparent 100%);
+  mask: radial-gradient(closest-side, transparent 86%, #000 87%, #000 99%, transparent 100%);
+  filter: drop-shadow(0 0 10px var(--glow));
+  animation: hud-spin 18s linear infinite reverse;
+}
+@utility hud-ring-3 {
+  inset: 22%;
+  border: 6px double color-mix(in oklab, var(--glow) 80%, transparent);
+  box-shadow: 0 0 40px -6px var(--glow), inset 0 0 40px -6px var(--glow);
+  animation: hud-spin 10s linear infinite;
+}
+@utility hud-core-center {
+  position: absolute; inset: 28%; border-radius: 999px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: radial-gradient(circle, color-mix(in oklab, var(--glow) 35%, transparent), color-mix(in oklab, var(--background) 90%, transparent) 70%);
+}
+@keyframes hud-spin { to { transform: rotate(360deg); } }
