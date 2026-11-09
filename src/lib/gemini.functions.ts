@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-export const GEMINI_MODELS = ["gemini-3.8-flash", "gemini-3.8-pro"] as const;
+export const GEMINI_MODELS = ["gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-3.8-flash"] as const;
 
 const SYSTEM =
   "Sei V.E.G.A. (Virtual Engine Governing Apatia), un assistente virtuale avanzato. Rispondi sempre in italiano, in modo conciso, intelligente e con un pizzico di ironia iperbolica o raffinata sul fatto che aiuti l'utente a gestire la sua agenda per sconfiggere la sua apatia.";
@@ -86,10 +86,12 @@ export const askGemini = createServerFn({ method: "POST" })
     const log = (ok: boolean) => context.supabase.from("vega_telemetry").insert({ user_id: context.userId, model: data.model, latency_ms: Date.now() - t0, tokens, ok }).then(() => {});
     for (let step = 0; step < 6; step++) {
       let res: Response | undefined;
-      for (let attempt = 0; attempt < 3; attempt++) {
-        if (attempt) await new Promise((r) => setTimeout(r, 1500 * attempt));
+      // On 503/429 fall back through sibling models instead of failing the chat.
+      const chain = [data.model, ...GEMINI_MODELS.filter((m) => m !== data.model)];
+      for (let attempt = 0; attempt < chain.length; attempt++) {
+        if (attempt) await new Promise((r) => setTimeout(r, 400));
         res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${data.model}:generateContent`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${chain[attempt]}:generateContent`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json", "x-goog-api-key": key },
