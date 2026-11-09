@@ -257,7 +257,7 @@ function Telemetry() {
       <div className="space-y-4 p-4">
         <div>
           <p className="font-display text-xs tracking-wider text-primary">
-            LATENZA API: {lat.length ? `${(lat[lat.length - 1] / 1000).toFixed(1)}s` : "—"}
+            LATENZA API: {lat.length ? `${((lat.at(-1) ?? 0) / 1000).toFixed(1)}s` : "—"}
           </p>
           <svg viewBox="0 0 300 72" className="mt-2 h-20 w-full" preserveAspectRatio="none" aria-label="Grafico latenza">
             <line x1="0" y1="71" x2="300" y2="71" className="stroke-primary/30" />
