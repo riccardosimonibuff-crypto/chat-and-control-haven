@@ -15,8 +15,8 @@ async function accessToken(acc: Account): Promise<string> {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
-      client_id: process.env["GOOGLE_MULTI_CLIENT_ID"] ?? "",
-      client_secret: process.env["GOOGLE_MULTI_CLIENT_SECRET"] ?? "",
+      client_id: (process.env["GOOGLE_OAUTH_CLIENT_ID"] || process.env["GOOGLE_MULTI_CLIENT_ID"]) ?? "",
+      client_secret: (process.env["GOOGLE_OAUTH_CLIENT_SECRET"] || process.env["GOOGLE_MULTI_CLIENT_SECRET"]) ?? "",
       grant_type: "refresh_token",
       refresh_token: await decryptToken(acc.refresh_token_ciphertext, secret),
     }),

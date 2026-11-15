@@ -14,14 +14,14 @@ export const listGoogleAccounts = createServerFn({ method: "GET" })
     const url = new URL(request.url);
     const proxyHost = url.hostname === "localhost" ? request.headers.get("x-forwarded-host") : null;
     const origin = proxyHost ? `https://${proxyHost}` : url.origin;
-    return { accounts: data ?? [], configured: Boolean(process.env["GOOGLE_MULTI_CLIENT_ID"] && process.env["GOOGLE_MULTI_CLIENT_SECRET"]), callbackUrl: `${origin}/api/public/google/return` };
+    return { accounts: data ?? [], configured: Boolean((process.env["GOOGLE_OAUTH_CLIENT_ID"] || process.env["GOOGLE_MULTI_CLIENT_ID"]) && (process.env["GOOGLE_OAUTH_CLIENT_SECRET"] || process.env["GOOGLE_MULTI_CLIENT_SECRET"])), callbackUrl: `${origin}/api/public/google/return` };
   });
 
 export const startGoogleOAuth = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth]).handler(async ({ context }) => {
-    const clientId = process.env["GOOGLE_MULTI_CLIENT_ID"];
+    const clientId = (process.env["GOOGLE_OAUTH_CLIENT_ID"] || process.env["GOOGLE_MULTI_CLIENT_ID"]);
     const secret = process.env["GOOGLE_TOKEN_ENCRYPTION_SECRET"];
-    if (!clientId || !secret || !process.env["GOOGLE_MULTI_CLIENT_SECRET"]) throw new Error("Configurazione OAuth Google incompleta.");
+    if (!clientId || !secret || !(process.env["GOOGLE_OAUTH_CLIENT_SECRET"] || process.env["GOOGLE_MULTI_CLIENT_SECRET"])) throw new Error("Configurazione OAuth Google incompleta.");
     const request = getRequest();
     const url = new URL(request.url);
     const proxyHost = url.hostname === "localhost" ? request.headers.get("x-forwarded-host") : null;
@@ -42,8 +42,8 @@ export const completeGoogleOAuth = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(input => z.object({ code: z.string().min(1).max(4096), state: z.string().uuid() }).parse(input))
   .handler(async ({ context, data }) => {
-    const clientId = process.env["GOOGLE_MULTI_CLIENT_ID"];
-    const clientSecret = process.env["GOOGLE_MULTI_CLIENT_SECRET"];
+    const clientId = (process.env["GOOGLE_OAUTH_CLIENT_ID"] || process.env["GOOGLE_MULTI_CLIENT_ID"]);
+    const clientSecret = (process.env["GOOGLE_OAUTH_CLIENT_SECRET"] || process.env["GOOGLE_MULTI_CLIENT_SECRET"]);
     const secret = process.env["GOOGLE_TOKEN_ENCRYPTION_SECRET"];
     if (!clientId || !clientSecret || !secret) throw new Error("Configurazione OAuth incompleta.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
