@@ -1,8 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequest } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
+// Always the published URL registered in Google Cloud, so preview and live use the same authorized redirect.
+const CALLBACK_URL = "https://chat-and-control-haven.lovable.app/api/public/google/return";
 const scopes = ["openid", "email", "https://www.googleapis.com/auth/calendar.readonly", "https://www.googleapis.com/auth/calendar.events", "https://www.googleapis.com/auth/gmail.readonly", "https://www.googleapis.com/auth/gmail.compose"];
 
 export const listGoogleAccounts = createServerFn({ method: "GET" })
@@ -10,11 +11,7 @@ export const listGoogleAccounts = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin.from("google_accounts").select("id,email,reconnect_required").eq("user_id", context.userId).order("created_at");
     if (error) throw new Error(error.message);
-    const request = getRequest();
-    const url = new URL(request.url);
-    const proxyHost = url.hostname === "localhost" ? request.headers.get("x-forwarded-host") : null;
-    const origin = proxyHost ? `https://${proxyHost}` : url.origin;
-    return { accounts: data ?? [], configured: Boolean((process.env["GOOGLE_OAUTH_CLIENT_ID"] || process.env["GOOGLE_MULTI_CLIENT_ID"]) && (process.env["GOOGLE_OAUTH_CLIENT_SECRET"] || process.env["GOOGLE_MULTI_CLIENT_SECRET"])), callbackUrl: `${origin}/api/public/google/return` };
+    return { accounts: data ?? [], configured: Boolean((process.env["GOOGLE_OAUTH_CLIENT_ID"] || process.env["GOOGLE_MULTI_CLIENT_ID"]) && (process.env["GOOGLE_OAUTH_CLIENT_SECRET"] || process.env["GOOGLE_MULTI_CLIENT_SECRET"])), callbackUrl: CALLBACK_URL };
   });
 
 export const startGoogleOAuth = createServerFn({ method: "POST" })
@@ -22,10 +19,7 @@ export const startGoogleOAuth = createServerFn({ method: "POST" })
     const clientId = (process.env["GOOGLE_OAUTH_CLIENT_ID"] || process.env["GOOGLE_MULTI_CLIENT_ID"]);
     const secret = process.env["GOOGLE_TOKEN_ENCRYPTION_SECRET"];
     if (!clientId || !secret || !(process.env["GOOGLE_OAUTH_CLIENT_SECRET"] || process.env["GOOGLE_MULTI_CLIENT_SECRET"])) throw new Error("Configurazione OAuth Google incompleta.");
-    const request = getRequest();
-    const url = new URL(request.url);
-    const proxyHost = url.hostname === "localhost" ? request.headers.get("x-forwarded-host") : null;
-    const redirectUri = `${proxyHost ? `https://${proxyHost}` : url.origin}/api/public/google/return`;
+    const redirectUri = CALLBACK_URL;
     const state = crypto.randomUUID();
     const verifier = Array.from(crypto.getRandomValues(new Uint8Array(32)), n => n.toString(16).padStart(2, "0")).join("");
     const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier));

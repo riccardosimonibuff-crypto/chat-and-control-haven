@@ -19,6 +19,7 @@ export const Route = createFileRoute("/produttivita")({
   component: () => <SignInGate><ProduttivitaPage /></SignInGate>,
 });
 
+const ALLOWED_ORIGINS = ["https://chat-and-control-haven.lovable.app", "https://id-preview--31ea4d2c-1f14-5aa4-973d-692173241919.lovable.app"];
 type Acc = { id: string; email: string; reconnect_required: boolean };
 const time = (iso: string) => new Date(iso).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Rome" });
 const sender = (f: string) => f.replace(/<.*>/, "").replace(/"/g, "").trim() || f;
@@ -58,23 +59,28 @@ function ProduttivitaPage() {
 
   useEffect(() => {
     async function onMsg(ev: MessageEvent) {
-      if (ev.origin !== window.location.origin || ev.data?.type !== "vega-google-oauth") return;
+      if (!ALLOWED_ORIGINS.includes(ev.origin) || ev.data?.type !== "vega-google-oauth") return;
       setLinking(false);
       if (ev.data.error || !ev.data.code || !ev.data.state) { setErrs([`Collegamento annullato${ev.data.error ? `: ${ev.data.error}` : ""}.`]); return; }
       try { await completeFn({ data: { code: ev.data.code, state: ev.data.state } }); await load(); }
       catch (e) { setErrs([e instanceof Error ? e.message : "Errore"]); }
     }
     window.addEventListener("message", onMsg);
+    const qs = new URLSearchParams(window.location.search);
+    if (qs.has("gcode") || qs.has("gerror")) {
+      window.history.replaceState(null, "", window.location.pathname);
+      void onMsg(new MessageEvent("message", { origin: window.location.origin, data: { type: "vega-google-oauth", code: qs.get("gcode"), state: qs.get("gstate"), error: qs.get("gerror") } }));
+    }
     return () => window.removeEventListener("message", onMsg);
   }, [completeFn, load]);
 
   async function link() {
     setErrs([]);
-    const popup = window.open("about:blank", "vega-google", "width=520,height=680");
+    const popup = window.open("about:blank", "_blank");
     setLinking(true);
     try {
       const { authorizationUrl } = await startFn();
-      if (popup) popup.location.href = authorizationUrl; else window.location.href = authorizationUrl;
+      if (popup) popup.location.href = authorizationUrl; else window.top!.location.href = authorizationUrl;
     } catch (e) { popup?.close(); setLinking(false); setErrs([e instanceof Error ? e.message : "Errore"]); }
   }
 
