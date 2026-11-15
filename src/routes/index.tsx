@@ -287,7 +287,7 @@ function Telemetry() {
 function Accounts() {
   const list = useServerFn(listGoogleAccounts);
   const [accounts, setAccounts] = useState<{ id: string; email: string; reconnect_required: boolean }[] | null>(null);
-  useEffect(() => { list().then((a) => setAccounts(a as never)).catch(() => setAccounts([])); }, [list]);
+  useEffect(() => { list().then((res) => setAccounts(Array.isArray(res?.accounts) ? res.accounts : [])).catch(() => setAccounts([])); }, [list]);
   return (
     <section className="hud-panel min-h-0 flex-1 overflow-y-auto">
       <PanelTitle icon={<span className="font-display text-lg font-black">G</span>}>CONNECTED GOOGLE ACCOUNTS</PanelTitle>
