@@ -33,6 +33,7 @@ function ProduttivitaPage() {
   const [tab, setTab] = useState<"agenda" | "email">("agenda");
   const [accounts, setAccounts] = useState<Acc[] | null>(null);
   const [configured, setConfigured] = useState(true);
+  const [callbackUrl, setCallbackUrl] = useState("");
   const [events, setEvents] = useState<CalEvent[] | null>(null);
   const [emails, setEmails] = useState<Email[] | null>(null);
   const [onlyImportant, setOnlyImportant] = useState(true);
@@ -44,7 +45,7 @@ function ProduttivitaPage() {
     setLoading(true); setErrs([]);
     try {
       const a = await listFn();
-      setAccounts(a.accounts); setConfigured(a.configured);
+      setAccounts(a.accounts); setConfigured(a.configured); setCallbackUrl(a.callbackUrl);
       if (a.accounts.length) {
         const [e, m] = await Promise.all([evFn(), emFn()]);
         setEvents(e.events); setEmails(m.emails); setErrs([...e.errors, ...m.errors]);
@@ -108,6 +109,15 @@ function ProduttivitaPage() {
           </button>
         </div>
         {!configured && <p className="mb-2 font-mono text-xs text-destructive">Credenziali OAuth Google non configurate.</p>}
+        {callbackUrl && (
+          <div className="mb-3 rounded border px-3 py-2">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">URL di callback (Google Cloud)</p>
+            <div className="flex items-center gap-2">
+              <code className="min-w-0 flex-1 truncate font-mono text-xs text-primary">{callbackUrl}</code>
+              <button onClick={() => navigator.clipboard.writeText(callbackUrl)} className="rounded border px-2 py-0.5 font-mono text-[10px] uppercase text-muted-foreground hover:border-primary hover:text-primary">Copia</button>
+            </div>
+          </div>
+        )}
         {accounts === null ? <p className="font-mono text-xs text-muted-foreground">Verifica connessioni…</p>
           : accounts.length === 0 ? <p className="font-mono text-xs text-muted-foreground">Nessun account collegato. Le sue caselle attendono, signore.</p>
           : (
