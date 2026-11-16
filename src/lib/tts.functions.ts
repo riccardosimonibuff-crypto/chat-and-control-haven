@@ -11,14 +11,12 @@ export const synthesizeVoice = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     const audio = await generateSpeech({
-      model: "openai/gpt-4o-mini-tts",
-      input: data.text,
-      voice: "onyx",
-      instructions: "Parla in italiano con accento naturale. Voce maschile calma, elegante e distaccata, da maggiordomo digitale raffinato.",
-      response_format: "mp3",
+      model: "google/gemini-3.1-flash-tts-preview",
+      contents: [{ role: "user", parts: [{ text: `Leggi in italiano con voce maschile calma, elegante e distaccata da maggiordomo digitale: ${data.text}` }] }],
+      generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Charon" } } } },
     });
     const buf = new Uint8Array(await (await audio.blob()).arrayBuffer());
     let bin = "";
     for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
-    return { audio: btoa(bin), type: audio.contentType || "audio/mpeg" };
+    return { audio: btoa(bin), type: audio.contentType || "audio/wav" };
   });
